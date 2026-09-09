@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>공룡 점프 게임</title>
+  <style>
+    /* 연핑크 전체 배경 및 디즈니풍 감성 연출 */
+    body {
+      background-color: #FFB6C1; /* 연핑크 배경 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+    }
+
+    /* 가운데 게임 사각형 화면 (디즈니 동화 배경 스타일) */
+    #game-container {
+      width: 600px;
+      height: 250px;
+      background: linear-gradient(to bottom, #A1C4FD 0%, #C2E9FB 70%, #E2F0D9 70%, #90EE90 100%); /* 하늘과 풀밭 */
+      border: 6px solid #FFF;
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 오른쪽 상단 0.1초 타이머 */
+    #timer {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 5px 12px;
+      border-radius: 20px;
+    }
+
+    /* 공룡 캐릭터 */
+    #dino {
+      width: 40px;
+      height: 40px;
+      background-color: #2E8B57; /* 공룡 녹색 */
+      border-radius: 8px;
+      position: absolute;
+      bottom: 30px;
+      left: 50px;
+    }
+
+    /* 점프 애니메이션 클래스 */
+    .jump {
+      animation: jump-animation 0.5s ease-out;
+    }
+
+    @keyframes jump-animation {
+      0% { bottom: 30px; }
+      50% { bottom: 130px; }
+      100% { bottom: 30px; }
+    }
+
+    /* 선인장 장애물 */
+    #cactus {
+      width: 20px;
+      height: 40px;
+      background-color: #006400; /* 선인장 진녹색 */
+      position: absolute;
+      bottom: 30px;
+      right: -20px;
+    }
+
+    /* 선인장 이동 애니메이션 */
+    .move-cactus {
+      animation: cactus-animation 1.5s infinite linear;
+    }
+
+    @keyframes cactus-animation {
+      0% { right: -20px; }
+      100% { right: 600px; }
+    }
+
+    /* 시작 버튼 UI */
+    #start-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 12px 24px;
+      font-size: 18px;
+      font-weight: bold;
+      background-color: #FF69B4;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    #start-btn:hover {
+      background-color: #FF1493;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="game-container">
+    <div id="timer">0.0초</div>
+    <div id="dino"></div>
+    <div id="cactus"></div>
+    <button id="start-btn" onclick="startGame()">게임 시작</button>
+  </div>
+
+  <script>
+    const dino = document.getElementById("dino");
+    const cactus = document.getElementById("cactus");
+    const timerElement = document.getElementById("timer");
+    const startBtn = document.getElementById("start-btn");
+
+    let isJumping = false;
+    let isGaming = false;
+    let time = 0;
+    let timerInterval = null;
+    let checkCollisionInterval = null;
+
+    // 스페이스바 점프 이벤트
+    document.addEventListener("keydown", function(event) {
+      if (event.code === "Space" && !isJumping && isGaming) {
+        jump();
+      }
+    });
+
+    function jump() {
+      isJumping = true;
+      dino.classList.add("jump");
+      setTimeout(() => {
+        dino.classList.remove("jump");
+        isJumping = false;
+      }, 500);
+    }
+
+    // 게임 시작 함수
+    function startGame() {
+      // 초기화
+      isGaming = true;
+      time = 0;
+      timerElement.innerText = "0.0초";
+      startBtn.style.display = "none";
+      cactus.classList.add("move-cactus");
+
+      // 0.1초 타이머 작동
+      timerInterval = setInterval(() => {
+        time += 0.1;
+        timerElement.innerText = time.toFixed(1) + "초";
+      }, 100);
+
+      // 충돌 감지 (게임 오버 판정)
+      checkCollisionInterval = setInterval(() => {
+        const dinoBottom = parseInt(window.getComputedStyle(dino).getPropertyValue("bottom"));
+        const cactusLeft = parseInt(window.getComputedStyle(cactus).getPropertyValue("left"));
+
+        // 공룡과 선인장이 겹쳤을 때
+        if (cactusLeft > 50 && cactusLeft < 90 && dinoBottom <= 70) {
+          endGame();
+        }
+      }, 10);
+    }
+
+    // 게임 종료 처리
+    function endGame() {
+      isGaming = false;
+      cactus.classList.remove("move-cactus");
+      clearInterval(timerInterval);
+      clearInterval(checkCollisionInterval);
+      alert(`게임 오버! 기록: ${time.toFixed(1)}초`);
+      startBtn.innerText = "다시 시작";
+      startBtn.style.display = "block";
+    }
+  </script>
+</body>
+</html>
